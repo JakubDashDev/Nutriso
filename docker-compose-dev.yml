@@ -1,0 +1,68 @@
+services:
+  # api:
+  #   container_name: api
+  #   build:
+  #     context: ./apps/api
+  #     dockerfile: Dockerfile.dev
+  #   command: mvn clean spring-boot:run
+  #   ports:
+  #     - 8000:8000
+  #   volumes:
+  #     - ./apps/api:/app
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - db
+  # dashboard:
+  #   container_name: dashboard
+  #   build:
+  #     context: ./apps/api
+  #     dockerfile: Dockerfile.dev
+  #   command: pnpm run dev
+  #   ports:
+  #     - 3100:3100
+  #   volumes:
+  #     - ./apps/dashboard:/app
+  #     - /app/node_modules
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - api
+  # landing:
+  #   container_name: landing
+  #   build:
+  #     context: ./apps/landing
+  #     dockerfile: Dockerfile.dev
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./apps/landing:/app
+  #     - /app/node_modules
+  db:
+    container_name: db
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: super_secret_password
+      POSTGRES_DB: dev_db
+    expose:
+      - 5432
+    volumes:
+      - data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_user -d dev_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  data:
