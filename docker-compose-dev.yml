@@ -1,18 +1,19 @@
 services:
-  # api:
-  #   container_name: api
-  #   build:
-  #     context: ./apps/api
-  #     dockerfile: Dockerfile.dev
-  #   command: mvn clean spring-boot:run
-  #   ports:
-  #     - 8000:8000
-  #   volumes:
-  #     - ./apps/api:/app
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - db
+  api:
+    container_name: api
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+    command: mvn clean spring-boot:run
+    ports:
+      - 8080:8080
+    volumes:
+      - ./apps/api:/app
+      - ~/.m2:/root/.m2
+    env_file:
+      - .env
+    depends_on:
+      - db
   # dashboard:
   #   container_name: dashboard
   #   build:
