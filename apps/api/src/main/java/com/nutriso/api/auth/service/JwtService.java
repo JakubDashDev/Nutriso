@@ -2,6 +2,7 @@ package com.nutriso.api.auth.service;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -9,6 +10,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.nutriso.api.auth.type.GeneratedAccessToken;
 import com.nutriso.api.user.model.User;
 
 import io.jsonwebtoken.Claims;
@@ -24,11 +26,11 @@ public class JwtService {
     @Value("${jwt.access-token-expiration-ms}")
     private long accessTokenExpirationMs;
     
-    public String generateAccessToken(User user) {
+    public GeneratedAccessToken generateAccessToken(User user) {
         Date now = new Date();
         Date expiresAt = new Date(now.getTime() + accessTokenExpirationMs);
 
-        return Jwts.builder()
+        String token =  Jwts.builder()
             .subject(user.getId().toString())
             .claim("email", user.getEmail())
             .claim("role", user.getRole().name())
@@ -36,20 +38,22 @@ public class JwtService {
             .expiration(expiresAt)
             .signWith(getSigningKey())
             .compact();
+
+        return new GeneratedAccessToken(token, expiresAt);
     }
 
     public boolean isTokenValid(String token, User user) {
         try {
-            String userId = extractId(token);
+            UUID userId = extractUserId(token);
 
-            return userId.equals(user.getId().toString()) && !isTokenExpired(token);
+            return userId.equals(user.getId()) && !isTokenExpired(token);
         } catch (Exception e) {
             return false;
         }
     }
 
-    private String extractId(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public UUID extractUserId(String token) {
+        return UUID.fromString(extractClaim(token, Claims::getSubject));
     }
 
     private boolean isTokenExpired(String token) {

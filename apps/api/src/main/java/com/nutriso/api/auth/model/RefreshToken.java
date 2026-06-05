@@ -1,8 +1,9 @@
-package com.nutriso.api.user.model;
+package com.nutriso.api.auth.model;
 
 import java.time.Instant;
 
 import com.nutriso.api.common.model.BaseEntity;
+import com.nutriso.api.user.model.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +29,7 @@ public class RefreshToken extends BaseEntity {
     
     @Column(name = "token_hash", nullable = false, unique = true)
     @NonNull
+    @NotBlank
     private String tokenHash;
 
     @Column(name = "expires_at", nullable = false)
