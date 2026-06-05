@@ -5,7 +5,7 @@ import java.util.UUID;
 import com.nutriso.api.user.enums.Role;
 
 
-public record UserResponseDto(
+public record LoginResponse(
     UUID id,
     String email,
     Role role
