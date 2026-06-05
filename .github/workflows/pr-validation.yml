@@ -29,5 +29,8 @@ jobs:
         working-directory: apps/api
         run: mvn --batch-mode test
 
+      - name: Prepare Docker Compose env file
+        run: touch .env
+
       - name: Validate Docker Compose config
         run: docker compose -f docker-compose-dev.yml config
