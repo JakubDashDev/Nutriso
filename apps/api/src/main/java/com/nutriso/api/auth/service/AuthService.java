@@ -29,7 +29,7 @@ public class AuthService {
             .orElseThrow(() -> invalidCredentials());
 
         if(!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw invalidCredentials();
+            invalidCredentials();
         }
 
         return createAuthResponse(user, userAgent);
@@ -45,6 +45,6 @@ public class AuthService {
     }
 
     private ResponseStatusException invalidCredentials() {
-        return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
     }
 }
