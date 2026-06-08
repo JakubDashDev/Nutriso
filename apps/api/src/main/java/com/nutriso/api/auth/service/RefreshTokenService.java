@@ -47,6 +47,15 @@ public class RefreshTokenService {
         return new GeneratedRefreshToken(rawToken, expiresAt);
     }
 
+    @Transactional
+    public void logout(String rawToken) {
+        String tokenHash = hashToken(rawToken);
+
+        refreshTokenRepository.findByTokenHash(tokenHash)
+            .filter(refreshToken -> refreshToken.getRevokedAt() == null)
+            .ifPresent(refreshToken -> refreshToken.setRevokedAt(Instant.now()));
+    }
+
     private String generateRawToken() {
         byte[] bytes = new byte[64];
         secureRandom.nextBytes(bytes);
