@@ -8,6 +8,7 @@ import java.time.Instant;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -44,7 +45,7 @@ public class AuthController {
             .maxAge(Duration.between(Instant.now(), authResponse.accessTokenExpiresAt().toInstant()))
             .build();
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refresh_cookie", authResponse.refreshToken())
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", authResponse.refreshToken())
             .httpOnly(true)
             .secure(true)
             .sameSite("LAX")
@@ -56,5 +57,36 @@ public class AuthController {
             .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
             .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
             .body(authResponse.loginResponse());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+        @CookieValue(value = "refresh_token", required = false) String refreshToken
+    ) {
+
+        if(refreshToken != null) {
+            authService.logout(refreshToken);
+        }
+
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", "")
+            .httpOnly(true)
+            .secure(true)
+            .sameSite("LAX")
+            .path("/")
+            .maxAge(Duration.ZERO)
+            .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
+            .httpOnly(true)
+            .secure(true)
+            .sameSite("LAX")
+            .path("/api/v1/auth")
+            .maxAge(Duration.ZERO)
+            .build();
+
+        return ResponseEntity.noContent()
+            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+            .build();
     }
 }

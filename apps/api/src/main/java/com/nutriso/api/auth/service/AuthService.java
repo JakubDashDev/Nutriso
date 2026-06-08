@@ -35,6 +35,11 @@ public class AuthService {
         return createAuthResponse(user, userAgent);
     }
 
+
+    public void logout(String refreshToken) {
+        refreshTokenService.logout(refreshToken);
+    }
+
     private AuthResponse createAuthResponse(User user, String userAgent) {
         GeneratedAccessToken accessToken = jwtService.generateAccessToken(user);
         GeneratedRefreshToken refreshToken = refreshTokenService.generateRefreshTokenAndSave(user, userAgent);
