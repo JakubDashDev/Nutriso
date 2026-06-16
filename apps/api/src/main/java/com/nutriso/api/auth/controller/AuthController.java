@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.nutriso.api.auth.dto.LoginRequest;
 import com.nutriso.api.auth.dto.LoginResponse;
+import com.nutriso.api.auth.dto.RegisterRequest;
 import com.nutriso.api.auth.service.AuthService;
 import com.nutriso.api.auth.type.AuthResponse;
 
@@ -37,26 +38,19 @@ public class AuthController {
     ) {
         AuthResponse authResponse = authService.login(body, userAgent);
 
-        ResponseCookie accessCookie = ResponseCookie.from("access_token", authResponse.accessToken())
-            .httpOnly(true)
-            .secure(true)
-            .sameSite("LAX")
-            .path("/")
-            .maxAge(Duration.between(Instant.now(), authResponse.accessTokenExpiresAt().toInstant()))
-            .build();
+        return generateResponseAfterAuth(authResponse);
+    }
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", authResponse.refreshToken())
-            .httpOnly(true)
-            .secure(true)
-            .sameSite("LAX")
-            .path("/api/v1/auth")
-            .maxAge(Duration.between(Instant.now(), authResponse.refreshTokenExpiresAt()))
-            .build();
 
-        return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-            .body(authResponse.loginResponse());
+    @PostMapping("/register")
+    public ResponseEntity<LoginResponse> register(
+        @RequestBody @Valid RegisterRequest body,
+        @RequestHeader(value = "User-Agent", defaultValue = "unknown") String userAgent
+    ) {
+
+        AuthResponse authResponse = authService.register(body, userAgent);
+
+        return generateResponseAfterAuth(authResponse);
     }
 
     @PostMapping("/logout")
@@ -88,5 +82,29 @@ public class AuthController {
             .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
             .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
             .build();
+    }
+
+
+    private ResponseEntity<LoginResponse> generateResponseAfterAuth(AuthResponse authResponse) {
+        ResponseCookie accessCookie = ResponseCookie.from("access_token", authResponse.accessToken())
+            .httpOnly(true)
+            .secure(true)
+            .sameSite("LAX")
+            .path("/")
+            .maxAge(Duration.between(Instant.now(), authResponse.accessTokenExpiresAt().toInstant()))
+        .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", authResponse.refreshToken())
+            .httpOnly(true)
+            .secure(true)
+            .sameSite("LAX")
+            .path("/api/v1/auth")
+            .maxAge(Duration.between(Instant.now(), authResponse.refreshTokenExpiresAt()))
+        .build();
+
+        return ResponseEntity.ok()
+            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+            .body(authResponse.loginResponse());
     }
 }
