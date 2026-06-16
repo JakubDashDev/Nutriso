@@ -32,7 +32,7 @@ public class Seed implements CommandLineRunner {
 
         if(exists) return;
 
-        User user = new User("user@user.com", passwordEncoder.encode("password"), Role.USER);
+        User user = new User("user@user.com", "Test User", passwordEncoder.encode("password"), Role.USER);
         entityManager.persist(user);
     }
 }
