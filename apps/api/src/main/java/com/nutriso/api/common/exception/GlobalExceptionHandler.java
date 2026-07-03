@@ -15,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.nutriso.api.auth.type.ApiError;
+import com.nutriso.api.auth.type.FieldValidationError;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -30,29 +32,26 @@ public class GlobalExceptionHandler {
             .status(exception.getStatusCode())
             .body(new ApiError(
                 exception.getStatusCode().value(),
-                messageFor(exception),
-                request.getRequestURI(),
-                Map.of()
+                messageFor(exception)
             ));
     }
 
     @ExceptionHandler(FieldValidationException.class)
-    public ResponseEntity<ApiError> handleApiFieldException(
+    public ResponseEntity<FieldValidationError> handleApiFieldException(
         FieldValidationException exception,
         HttpServletRequest request
     ) {
         return ResponseEntity
             .status(exception.getStatus())
-            .body(new ApiError(
+            .body(new FieldValidationError(
                 exception.getStatus().value(),
-                "Validation failed",
-                request.getRequestURI(),
+                exception.getMessage(),
                 exception.getErrors()
             ));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiError> handleBadRequestException(
+    public ResponseEntity<FieldValidationError> handleBadRequestException(
         HttpMessageNotReadableException exception,
         HttpServletRequest request
     ) {
@@ -65,22 +64,21 @@ public class GlobalExceptionHandler {
             String field = fieldPath(mismatchedInputException);
 
             if (field != null && !field.isBlank()) {
-                errors.put(field, ApiValidationError.INVALID_TYPE);
+                errors.put(field, ApiErrorCodes.INVALID_TYPE);
             }
         }
 
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(new ApiError(
+            .body(new FieldValidationError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Invalid request body",
-                request.getRequestURI(),
                 errors
             ));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidationException(
+    public ResponseEntity<FieldValidationError> handleValidationException(
         MethodArgumentNotValidException exception,
         HttpServletRequest request
     ) {
@@ -92,10 +90,9 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
-            .body(new ApiError(
+            .body(new FieldValidationError(
                 HttpStatus.BAD_REQUEST.value(),
                 "Validation failed",
-                request.getRequestURI(),
                 errors
             ));
     }

@@ -13,7 +13,7 @@ import com.nutriso.api.auth.dto.RegisterRequest;
 import com.nutriso.api.auth.type.AuthResponse;
 import com.nutriso.api.auth.type.GeneratedAccessToken;
 import com.nutriso.api.auth.type.GeneratedRefreshToken;
-import com.nutriso.api.common.exception.ApiValidationError;
+import com.nutriso.api.common.exception.ApiErrorCodes;
 import com.nutriso.api.common.exception.FieldValidationException;
 import com.nutriso.api.user.enums.Role;
 import com.nutriso.api.user.model.User;
@@ -25,10 +25,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
     
-    private final UserService userService;
-    private final JwtService jwtService;
-    private final RefreshTokenService refreshTokenService;
-    private final PasswordEncoder passwordEncoder;
+  private final UserService userService;
+  private final JwtService jwtService;
+  private final RefreshTokenService refreshTokenService;
+  private final PasswordEncoder passwordEncoder;
 
     public AuthResponse login(LoginRequest request, String userAgent) {
         User user = userService.findByEmail(request.email())
@@ -43,13 +43,12 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request, String userAgent){
         if(!request.password().equals(request.confirmPassword())) 
-            throw new FieldValidationException(HttpStatus.BAD_REQUEST, Map.of("confirmPassword", ApiValidationError.PASSWORD_DO_NOT_MATCH));
+            throw new FieldValidationException(HttpStatus.BAD_REQUEST, ApiErrorCodes.VALIDATION_FAILED ,Map.of("confirmPassword", ApiErrorCodes.PASSWORD_DO_NOT_MATCH));
 
-        Boolean userExists = userService.findByEmail(request.email())
-            .isPresent();
+        Boolean userExists = userService.findByEmail(request.email()).isPresent();
 
         if(userExists) 
-            throw new FieldValidationException(HttpStatus.CONFLICT, Map.of("email", ApiValidationError.ALREADY_EXISTS));
+            throw new FieldValidationException(HttpStatus.CONFLICT, ApiErrorCodes.ALREADY_EXISTS, Map.of("email", ApiErrorCodes.ALREADY_EXISTS));
 
         User newUser = new User(
             request.email(),
