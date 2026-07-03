@@ -1,26 +1,26 @@
 package com.nutriso.api.auth.dto;
 
-import com.nutriso.api.common.exception.ApiValidationError;
+import com.nutriso.api.common.exception.ApiErrorCodes;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
-    @Email(message = ApiValidationError.INVALID_EMAIL)
-    @NotBlank(message = ApiValidationError.REQUIRED)
-    String email,
+  @Email(message = ApiErrorCodes.INVALID_EMAIL)
+  @NotBlank(message = ApiErrorCodes.REQUIRED)
+  String email,
 
-    @NotBlank(message = ApiValidationError.REQUIRED)
-    @Size(max = 99, message = ApiValidationError.TOO_LONG_MAX)
-    @Size(min = 3, message = ApiValidationError.TOO_SHORT_MIN)
-    String name,
+  @NotBlank(message = ApiErrorCodes.REQUIRED)
+  @Size(max = 99, message = ApiErrorCodes.TOO_LONG_MAX)
+  @Size(min = 3, message = ApiErrorCodes.TOO_SHORT_MIN)
+  String name,
 
-    @NotBlank(message = ApiValidationError.REQUIRED)
-    @Size(max = 99, message = ApiValidationError.TOO_LONG_MAX)
-    @Size(min = 8, message = ApiValidationError.TOO_SHORT_MIN)
-    String password,
+  @NotBlank(message = ApiErrorCodes.REQUIRED)
+  @Size(max = 99, message = ApiErrorCodes.TOO_LONG_MAX)
+  @Size(min = 8, message = ApiErrorCodes.TOO_SHORT_MIN)
+  String password,
 
-    @NotBlank(message = ApiValidationError.REQUIRED)
-    String confirmPassword
+  @NotBlank(message = ApiErrorCodes.REQUIRED)
+  String confirmPassword
 ) {}
