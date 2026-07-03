@@ -30,18 +30,17 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "id", nullable = false, updatable = false, unique = true)
+  @NonNull
+  private UUID id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false, updatable = false, unique = true)
-    @NonNull
-    private UUID id;
+  @CreatedDate
+  @Column(name = "created_at", updatable = false, nullable = false)
+  private Instant createdAt;
 
-    @CreatedDate
-    @Column(name = "created_at", updatable = false, nullable = false)
-    private Instant createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at", updatable = true, nullable = false)
-    private Instant updatedAt;
+  @LastModifiedDate
+  @Column(name = "updated_at", updatable = true, nullable = false)
+  private Instant updatedAt;
 }

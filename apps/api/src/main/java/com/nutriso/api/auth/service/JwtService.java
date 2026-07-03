@@ -20,60 +20,59 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-   @Value("${jwt.secret}")
-   private String secret;
+  @Value("${jwt.secret}")
+  private String secret;
 
-    @Value("${jwt.access-token-expiration-ms}")
-    private long accessTokenExpirationMs;
+  @Value("${jwt.access-token-expiration-ms}")
+  private long accessTokenExpirationMs;
     
-    public GeneratedAccessToken generateAccessToken(User user) {
-        Date now = new Date();
-        Date expiresAt = new Date(now.getTime() + accessTokenExpirationMs);
+  public GeneratedAccessToken generateAccessToken(User user) {
+    Date now = new Date();
+    Date expiresAt = new Date(now.getTime() + accessTokenExpirationMs);
 
-        String token =  Jwts.builder()
-            .subject(user.getId().toString())
-            .claim("email", user.getEmail())
-            .claim("role", user.getRole().name())
-            .issuedAt(now)
-            .expiration(expiresAt)
-            .signWith(getSigningKey())
-            .compact();
+    String token =  Jwts.builder()
+      .subject(user.getId().toString())
+      .claim("email", user.getEmail())
+      .claim("role", user.getRole().name())
+      .issuedAt(now)
+      .expiration(expiresAt)
+      .signWith(getSigningKey())
+      .compact();
 
-        return new GeneratedAccessToken(token, expiresAt);
+    return new GeneratedAccessToken(token, expiresAt);
+  }
+
+  public boolean isTokenValid(String token, User user) {
+    try {
+      UUID userId = extractUserId(token);
+      return userId.equals(user.getId()) && !isTokenExpired(token);
+    } catch (Exception e) {
+      return false;
     }
+  }
 
-    public boolean isTokenValid(String token, User user) {
-        try {
-            UUID userId = extractUserId(token);
+  public UUID extractUserId(String token) {
+    return UUID.fromString(extractClaim(token, Claims::getSubject));
+  }
 
-            return userId.equals(user.getId()) && !isTokenExpired(token);
-        } catch (Exception e) {
-            return false;
-        }
-    }
+  private boolean isTokenExpired(String token) {
+    Date expiration = extractClaim(token, Claims::getExpiration);
+    return expiration.before(new Date());
+  }
 
-    public UUID extractUserId(String token) {
-        return UUID.fromString(extractClaim(token, Claims::getSubject));
-    }
+  private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    Claims claims = Jwts
+      .parser()
+      .verifyWith(getSigningKey())
+      .build()
+      .parseSignedClaims(token)
+      .getPayload();
 
-    private boolean isTokenExpired(String token) {
-        Date expiration = extractClaim(token, Claims::getExpiration);
-        return expiration.before(new Date());
-    }
+    return claimsResolver.apply(claims);
+  }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        Claims claims = Jwts
-            .parser()
-            .verifyWith(getSigningKey())
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
-
-        return claimsResolver.apply(claims);
-    }
-
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+  private SecretKey getSigningKey() {
+    byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+    return Keys.hmacShaKeyFor(keyBytes);
+  }
 }

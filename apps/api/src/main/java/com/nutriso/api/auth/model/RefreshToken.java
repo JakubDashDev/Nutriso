@@ -26,24 +26,23 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RefreshToken extends BaseEntity {
-    
-    @Column(name = "token_hash", nullable = false, unique = true)
-    @NonNull
-    @NotBlank
-    private String tokenHash;
+  @Column(name = "token_hash", nullable = false, unique = true)
+  @NonNull
+  @NotBlank
+  private String tokenHash;
 
-    @Column(name = "expires_at", nullable = false)
-    @NonNull
-    private Instant expiresAt;
+  @Column(name = "expires_at", nullable = false)
+  @NonNull
+  private Instant expiresAt;
 
-    @Column(name = "revoked_at", nullable = true)
-    private Instant revokedAt;
+  @Column(name = "revoked_at", nullable = true)
+  private Instant revokedAt;
 
-    @Column(name = "user_agent", nullable = false)
-    @NonNull
-    private String userAgent;
+  @Column(name = "user_agent", nullable = false)
+  @NonNull
+  private String userAgent;
 
-    @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private User user;
+  @JoinColumn(name = "user_id", nullable = false, updatable = false)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  private User user;
 }

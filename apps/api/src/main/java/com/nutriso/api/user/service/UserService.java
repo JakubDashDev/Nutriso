@@ -13,25 +13,23 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    
-    private final UserRepository userRepository;
+  private final UserRepository userRepository;
 
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
+  public Optional<User> findByEmail(String email) {
+    return userRepository.findByEmail(email);
+  }
 
-    public Optional<User> findById(UUID id) {
-        return userRepository.findById(id);
-    }
+  public Optional<User> findById(UUID id) {
+    return userRepository.findById(id);
+  }
 
-    public User findByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Invalid credentials"));
-    }
+  public User findByEmailOrThrow(String email) {
+    return userRepository.findByEmail(email)
+      .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+  }
 
 
-    public User createUser(User user) {
-        return userRepository.save(user);
-    }
-
+  public User createUser(User user) {
+    return userRepository.save(user);
+  }
 }

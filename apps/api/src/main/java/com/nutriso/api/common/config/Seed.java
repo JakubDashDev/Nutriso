@@ -18,21 +18,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class Seed implements CommandLineRunner {
 
-    @PersistenceContext
-    private EntityManager entityManager;
-    private final PasswordEncoder passwordEncoder;
+  @PersistenceContext
+  private EntityManager entityManager;
+  private final PasswordEncoder passwordEncoder;
 
-    @Override
-    @Transactional
-    public void run(String... args) throws Exception {
-        boolean exists = entityManager
-            .createQuery("select count(u) from User u where u.email = :email", Long.class)
-            .setParameter("email", "user@user.com")
-            .getSingleResult() > 0;
+  @Override
+  @Transactional
+  public void run(String... args) throws Exception {
+    boolean exists = entityManager
+      .createQuery("select count(u) from User u where u.email = :email", Long.class)
+      .setParameter("email", "user@user.com")
+      .getSingleResult() > 0;
 
-        if(exists) return;
+    if(exists) return;
 
-        User user = new User("user@user.com", "Test User", passwordEncoder.encode("password"), Role.USER);
-        entityManager.persist(user);
-    }
+    User user = new User("user@user.com", "Test User", passwordEncoder.encode("password"), Role.USER);
+    entityManager.persist(user);
+  }
 }

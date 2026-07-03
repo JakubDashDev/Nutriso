@@ -11,5 +11,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class FieldValidationException extends RuntimeException {
     private final HttpStatus status;
+    private final String message;
     private final Map<String, String> errors;
 }

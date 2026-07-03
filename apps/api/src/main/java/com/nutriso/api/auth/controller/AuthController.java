@@ -29,82 +29,78 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
     
-    private final AuthService authService;
+  private final AuthService authService;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(
-        @RequestBody @Valid LoginRequest body,
-        @RequestHeader(value = "User-Agent", defaultValue = "unknown") String userAgent
-    ) {
-        AuthResponse authResponse = authService.login(body, userAgent);
+  @PostMapping("/login")
+  public ResponseEntity<LoginResponse> login(
+    @RequestBody @Valid LoginRequest body,
+    @RequestHeader(value = "User-Agent", defaultValue = "unknown") String userAgent
+  ) {
+    AuthResponse authResponse = authService.login(body, userAgent);
+    return generateResponseAfterAuth(authResponse);
+  }
 
-        return generateResponseAfterAuth(authResponse);
+
+  @PostMapping("/register")
+  public ResponseEntity<LoginResponse> register(
+    @RequestBody @Valid RegisterRequest body,
+    @RequestHeader(value = "User-Agent", defaultValue = "unknown") String userAgent
+  ) {
+    AuthResponse authResponse = authService.register(body, userAgent);
+    return generateResponseAfterAuth(authResponse);
+  }
+
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(
+    @CookieValue(value = "refresh_token", required = false) String refreshToken
+  ) {
+    if(refreshToken != null) {
+      authService.logout(refreshToken);
     }
 
+    ResponseCookie accessCookie = ResponseCookie.from("access_token", "")
+      .httpOnly(true)
+      .secure(true)
+      .sameSite("LAX")
+      .path("/")
+      .maxAge(Duration.ZERO)
+      .build();
 
-    @PostMapping("/register")
-    public ResponseEntity<LoginResponse> register(
-        @RequestBody @Valid RegisterRequest body,
-        @RequestHeader(value = "User-Agent", defaultValue = "unknown") String userAgent
-    ) {
+    ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
+      .httpOnly(true)
+      .secure(true)
+      .sameSite("LAX")
+      .path("/api/v1/auth")
+      .maxAge(Duration.ZERO)
+      .build();
 
-        AuthResponse authResponse = authService.register(body, userAgent);
-
-        return generateResponseAfterAuth(authResponse);
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-        @CookieValue(value = "refresh_token", required = false) String refreshToken
-    ) {
-
-        if(refreshToken != null) {
-            authService.logout(refreshToken);
-        }
-
-        ResponseCookie accessCookie = ResponseCookie.from("access_token", "")
-            .httpOnly(true)
-            .secure(true)
-            .sameSite("LAX")
-            .path("/")
-            .maxAge(Duration.ZERO)
-            .build();
-
-        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", "")
-            .httpOnly(true)
-            .secure(true)
-            .sameSite("LAX")
-            .path("/api/v1/auth")
-            .maxAge(Duration.ZERO)
-            .build();
-
-        return ResponseEntity.noContent()
-            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-            .build();
-    }
+    return ResponseEntity.noContent()
+      .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+      .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+      .build();
+  }
 
 
-    private ResponseEntity<LoginResponse> generateResponseAfterAuth(AuthResponse authResponse) {
-        ResponseCookie accessCookie = ResponseCookie.from("access_token", authResponse.accessToken())
-            .httpOnly(true)
-            .secure(true)
-            .sameSite("LAX")
-            .path("/")
-            .maxAge(Duration.between(Instant.now(), authResponse.accessTokenExpiresAt().toInstant()))
-        .build();
+  private ResponseEntity<LoginResponse> generateResponseAfterAuth(AuthResponse authResponse) {
+    ResponseCookie accessCookie = ResponseCookie.from("access_token", authResponse.accessToken())
+      .httpOnly(true)
+      .secure(true)
+      .sameSite("LAX")
+      .path("/")
+      .maxAge(Duration.between(Instant.now(), authResponse.accessTokenExpiresAt().toInstant()))
+      .build();
 
-        ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", authResponse.refreshToken())
-            .httpOnly(true)
-            .secure(true)
-            .sameSite("LAX")
-            .path("/api/v1/auth")
-            .maxAge(Duration.between(Instant.now(), authResponse.refreshTokenExpiresAt()))
-        .build();
+    ResponseCookie refreshCookie = ResponseCookie.from("refresh_token", authResponse.refreshToken())
+      .httpOnly(true)
+      .secure(true)
+      .sameSite("LAX")
+      .path("/api/v1/auth")
+      .maxAge(Duration.between(Instant.now(), authResponse.refreshTokenExpiresAt()))
+      .build();
 
-        return ResponseEntity.ok()
-            .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-            .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-            .body(authResponse.loginResponse());
-    }
+    return ResponseEntity.ok()
+      .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+      .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+      .body(authResponse.loginResponse());
+  }
 }

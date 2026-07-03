@@ -27,69 +27,67 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String ACCESS_TOKEN_COOKIE = "access_token";
+  private static final String ACCESS_TOKEN_COOKIE = "access_token";
 
-    private final JwtService jwtService;
-    private final UserService userService;
+  private final JwtService jwtService;
+  private final UserService userService;
 
-    @Override
-    protected void doFilterInternal(
-        HttpServletRequest request,
-        HttpServletResponse response,
-        FilterChain filterChain
-    ) throws ServletException, IOException {
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            authenticateFromCookie(request);
-        }
-
-        filterChain.doFilter(request, response);
+  @Override
+  protected void doFilterInternal(
+    HttpServletRequest request,
+    HttpServletResponse response,
+    FilterChain filterChain
+  ) throws ServletException, IOException {
+    if (SecurityContextHolder.getContext().getAuthentication() == null) {
+      authenticateFromCookie(request);
     }
 
-    private void authenticateFromCookie(HttpServletRequest request) {
-        findCookieValue(request, ACCESS_TOKEN_COOKIE)
-            .flatMap(this::findValidUser)
-            .ifPresent(user -> setAuthentication(request, user));
+    filterChain.doFilter(request, response);
+  }
+
+  private void authenticateFromCookie(HttpServletRequest request) {
+    findCookieValue(request, ACCESS_TOKEN_COOKIE)
+      .flatMap(this::findValidUser)
+      .ifPresent(user -> setAuthentication(request, user));
+  }
+
+  private Optional<String> findCookieValue(HttpServletRequest request, String name) {
+    Cookie[] cookies = request.getCookies();
+
+    if (cookies == null) {
+      return Optional.empty();
     }
 
-    private Optional<String> findCookieValue(HttpServletRequest request, String name) {
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies == null) {
-            return Optional.empty();
-        }
-
-        for (Cookie cookie : cookies) {
-            if (name.equals(cookie.getName())) {
-                return Optional.of(cookie.getValue());
-            }
-        }
-
-        return Optional.empty();
+    for (Cookie cookie : cookies) {
+      if (name.equals(cookie.getName())) {
+          return Optional.of(cookie.getValue());
+      }
     }
 
-    private Optional<User> findValidUser(String token) {
-        try {
-            UUID userId = jwtService.extractUserId(token);
+    return Optional.empty();
+  }
 
-            return userService.findById(userId)
-                .filter(user -> jwtService.isTokenValid(token, user));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+  private Optional<User> findValidUser(String token) {
+    try {
+      UUID userId = jwtService.extractUserId(token);
+      return userService.findById(userId).filter(user -> jwtService.isTokenValid(token, user));
+    } catch (Exception e) {
+      return Optional.empty();
     }
+  }
 
-    private void setAuthentication(HttpServletRequest request, User user) {
-        List<SimpleGrantedAuthority> authorities = List.of(
-            new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
-        );
+  private void setAuthentication(HttpServletRequest request, User user) {
+    List<SimpleGrantedAuthority> authorities = List.of(
+      new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+    );
 
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            user,
-            null,
-            authorities
-        );
+    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+      user,
+      null,
+      authorities
+    );
 
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
+    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+  }
 }
