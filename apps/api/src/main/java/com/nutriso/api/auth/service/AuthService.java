@@ -30,52 +30,52 @@ public class AuthService {
   private final RefreshTokenService refreshTokenService;
   private final PasswordEncoder passwordEncoder;
 
-    public AuthResponse login(LoginRequest request, String userAgent) {
-        User user = userService.findByEmail(request.email())
-            .orElseThrow(() -> invalidCredentials());
+  public AuthResponse login(LoginRequest request, String userAgent) {
+    User user = userService.findByEmail(request.email())
+      .orElseThrow(() -> invalidCredentials());
 
-        if(!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            invalidCredentials();
-        }
-
-        return createAuthResponse(user, userAgent);
+    if(!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+      invalidCredentials();
     }
 
-    public AuthResponse register(RegisterRequest request, String userAgent){
-        if(!request.password().equals(request.confirmPassword())) 
-            throw new FieldValidationException(HttpStatus.BAD_REQUEST, ApiErrorCodes.VALIDATION_FAILED ,Map.of("confirmPassword", ApiErrorCodes.PASSWORD_DO_NOT_MATCH));
+    return createAuthResponse(user, userAgent);
+  }
 
-        Boolean userExists = userService.findByEmail(request.email()).isPresent();
+  public AuthResponse register(RegisterRequest request, String userAgent){
+    if(!request.password().equals(request.confirmPassword())) 
+      throw new FieldValidationException(HttpStatus.BAD_REQUEST, ApiErrorCodes.VALIDATION_FAILED ,Map.of("confirmPassword", ApiErrorCodes.PASSWORD_DO_NOT_MATCH));
 
-        if(userExists) 
-            throw new FieldValidationException(HttpStatus.CONFLICT, ApiErrorCodes.ALREADY_EXISTS, Map.of("email", ApiErrorCodes.ALREADY_EXISTS));
+    Boolean userExists = userService.findByEmail(request.email()).isPresent();
 
-        User newUser = new User(
-            request.email(),
-            request.name(),
-            passwordEncoder.encode(request.password()),
-            Role.USER
-        );
+    if(userExists) 
+      throw new FieldValidationException(HttpStatus.CONFLICT, ApiErrorCodes.ALREADY_EXISTS, Map.of("email", ApiErrorCodes.ALREADY_EXISTS));
 
-        userService.createUser(newUser);
+    User newUser = new User(
+      request.email(),
+      request.name(),
+      passwordEncoder.encode(request.password()),
+      Role.USER
+    );
 
-        return createAuthResponse(newUser, userAgent);
-    }
+    userService.createUser(newUser);
+
+    return createAuthResponse(newUser, userAgent);
+  }
 
     public void logout(String refreshToken) {
-        refreshTokenService.logout(refreshToken);
+      refreshTokenService.logout(refreshToken);
     }
 
-    private AuthResponse createAuthResponse(User user, String userAgent) {
-        GeneratedAccessToken accessToken = jwtService.generateAccessToken(user);
-        GeneratedRefreshToken refreshToken = refreshTokenService.generateRefreshTokenAndSave(user, userAgent);
+  private AuthResponse createAuthResponse(User user, String userAgent) {
+    GeneratedAccessToken accessToken = jwtService.generateAccessToken(user);
+    GeneratedRefreshToken refreshToken = refreshTokenService.generateRefreshTokenAndSave(user, userAgent);
 
-        LoginResponse loginResponse = new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+    LoginResponse loginResponse = new LoginResponse(user.getId(), user.getEmail(), user.getRole());
 
-        return new AuthResponse(accessToken.token(), refreshToken.rawToken(), accessToken.expiresAt(), refreshToken.expiresAt(), loginResponse);
-    }
+    return new AuthResponse(accessToken.token(), refreshToken.rawToken(), accessToken.expiresAt(), refreshToken.expiresAt(), loginResponse);
+  }
 
-    private ResponseStatusException invalidCredentials() {
-        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
-    }
+  private ResponseStatusException invalidCredentials() {
+    throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+  }
 }

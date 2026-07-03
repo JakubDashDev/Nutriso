@@ -22,24 +22,23 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User extends BaseEntity {
+  @Column(name = "email", nullable = false, unique = true)
+  @NonNull
+  private String email;
 
-    @Column(name = "email", nullable = false, unique = true)
-    @NonNull
-    private String email;
+  @Column(name = "name", nullable = false)
+  @NonNull
+  private String name;
 
-    @Column(name = "name", nullable = false)
-    @NonNull
-    private String name;
+  @Column(name = "password_hash", nullable = false)
+  @NonNull
+  private String passwordHash;
+  
+  @Column(name = "role", nullable = false)
+  @Enumerated(EnumType.STRING)
+  @NonNull
+  private Role role;
 
-    @Column(name = "password_hash", nullable = false)
-    @NonNull
-    private String passwordHash;
-    
-    @Column(name = "role", nullable = false)
-    @Enumerated(EnumType.STRING)
-    @NonNull
-    private Role role;
-
-    @Column(name = "active", nullable = false)
-    private boolean active = true;
+  @Column(name = "active", nullable = false)
+  private boolean active = true;
 }

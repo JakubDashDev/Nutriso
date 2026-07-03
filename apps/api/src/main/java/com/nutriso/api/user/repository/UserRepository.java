@@ -8,8 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.nutriso.api.user.model.User;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
+  Optional<User> findByEmail(String email);
 
-    Optional<User> findByEmail(String email);
-
-    boolean existsByEmail(String email);
+  boolean existsByEmail(String email);
 } 
