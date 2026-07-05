@@ -9,15 +9,16 @@ import jakarta.validation.constraints.Size;
 public record RegisterRequest(
   @Email(message = ApiErrorCodes.INVALID_EMAIL)
   @NotBlank(message = ApiErrorCodes.REQUIRED)
+  @Size(max = 254, message = ApiErrorCodes.TOO_LONG_MAX)
   String email,
 
   @NotBlank(message = ApiErrorCodes.REQUIRED)
-  @Size(max = 99, message = ApiErrorCodes.TOO_LONG_MAX)
+  @Size(max = 254, message = ApiErrorCodes.TOO_LONG_MAX)
   @Size(min = 3, message = ApiErrorCodes.TOO_SHORT_MIN)
   String name,
 
   @NotBlank(message = ApiErrorCodes.REQUIRED)
-  @Size(max = 99, message = ApiErrorCodes.TOO_LONG_MAX)
+  @Size(max = 72, message = ApiErrorCodes.TOO_LONG_MAX)
   @Size(min = 8, message = ApiErrorCodes.TOO_SHORT_MIN)
   String password,
 
