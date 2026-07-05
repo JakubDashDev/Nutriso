@@ -2,6 +2,7 @@ package com.nutriso.api.auth.service;
 
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import com.nutriso.api.user.enums.Role;
 import com.nutriso.api.user.model.User;
 import com.nutriso.api.user.service.UserService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -41,6 +43,7 @@ public class AuthService {
     return createAuthResponse(user, userAgent);
   }
 
+  @Transactional
   public AuthData register(RegisterRequest request, String userAgent){
     if(!request.password().equals(request.confirmPassword())) 
       throw new FieldValidationException(HttpStatus.BAD_REQUEST, ApiErrorCodes.VALIDATION_FAILED ,Map.of("confirmPassword", ApiErrorCodes.PASSWORD_DO_NOT_MATCH));
@@ -57,7 +60,11 @@ public class AuthService {
       Role.USER
     );
 
-    userService.createUser(newUser);
+    try {
+      userService.createUser(newUser);
+    } catch (DataIntegrityViolationException e) {
+      throw new FieldValidationException(HttpStatus.CONFLICT, ApiErrorCodes.ALREADY_EXISTS, Map.of("email", ApiErrorCodes.ALREADY_EXISTS));
+    }
 
     return createAuthResponse(newUser, userAgent);
   }
