@@ -6,6 +6,7 @@ public class ApiErrorCodes {
   public static final String TOO_SHORT = "TOO_SHORT";
   public static final String MUST_BE_POSITIVE = "MUST_BE_POSITIVE";
   public static final String MUST_BE_POSITIVE_OR_ZERO = "MUST_BE_POSITIVE_OR_ZERO";
+  public static final String TOO_BIG = "TOO_BIG" + "_{max}";
   public static final String INVALID_FORMAT = "INVALID_FORMAT";
   public static final String INVALID_EMAIL = "INVALID_EMAIL";
   public static final String INVALID_DATE_RANGE = "INVALID_DATE_RANGE";
@@ -22,4 +23,6 @@ public class ApiErrorCodes {
 
   public static final String VALIDATION_FAILED = "VALIDATION_FAILED";
   public static final String INVALID_REQUEST_BODY = "INVALID_REQUEST_BODY";
+
+  public static final String INVALID_MACROS_TOTAL = "INVALID_MACROS_TOTAL";
 }
