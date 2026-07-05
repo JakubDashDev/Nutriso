@@ -2,7 +2,6 @@ package com.nutriso.api.common.exception;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
-import com.nutriso.api.auth.type.ApiError;
-import com.nutriso.api.auth.type.FieldValidationError;
+import com.nutriso.api.common.dto.ApiErrorResponse;
+import com.nutriso.api.common.dto.FieldValidationErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -24,26 +21,26 @@ import jakarta.servlet.http.HttpServletRequest;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(ResponseStatusException.class)
-  public ResponseEntity<ApiError> handleResponseStatusException(
+  public ResponseEntity<ApiErrorResponse> handleResponseStatusException(
     ResponseStatusException exception,
     HttpServletRequest request
   ) {
     return ResponseEntity
       .status(exception.getStatusCode())
-      .body(new ApiError(
+      .body(new ApiErrorResponse(
           exception.getStatusCode().value(),
           messageFor(exception)
       ));
   }
 
   @ExceptionHandler(FieldValidationException.class)
-  public ResponseEntity<FieldValidationError> handleApiFieldException(
+  public ResponseEntity<FieldValidationErrorResponse> handleApiFieldException(
     FieldValidationException exception,
     HttpServletRequest request
   ) {
     return ResponseEntity
       .status(exception.getStatus())
-      .body(new FieldValidationError(
+      .body(new FieldValidationErrorResponse(
         exception.getStatus().value(),
         exception.getMessage(),
         exception.getErrors()
@@ -51,34 +48,20 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<FieldValidationError> handleBadRequestException(
+  public ResponseEntity<ApiErrorResponse> handleBadRequestException(
     HttpMessageNotReadableException exception,
     HttpServletRequest request
   ) {
-    Map<String, String> errors = new LinkedHashMap<>();
-
-    MismatchedInputException mismatchedInputException =
-      findCause(exception, MismatchedInputException.class);
-
-    if (mismatchedInputException != null) {
-      String field = fieldPath(mismatchedInputException);
-
-      if (field != null && !field.isBlank()) {
-          errors.put(field, ApiErrorCodes.INVALID_TYPE);
-      }
-    }
-
     return ResponseEntity
       .status(HttpStatus.BAD_REQUEST)
-      .body(new FieldValidationError(
+      .body(new ApiErrorResponse(
         HttpStatus.BAD_REQUEST.value(),
-        "Invalid request body",
-        errors
+        "Invalid request body"
       ));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<FieldValidationError> handleValidationException(
+  public ResponseEntity<FieldValidationErrorResponse> handleValidationException(
     MethodArgumentNotValidException exception,
     HttpServletRequest request
   ) {
@@ -90,7 +73,7 @@ public class GlobalExceptionHandler {
 
     return ResponseEntity
       .status(HttpStatus.BAD_REQUEST)
-      .body(new FieldValidationError(
+      .body(new FieldValidationErrorResponse(
         HttpStatus.BAD_REQUEST.value(),
         "Validation failed",
         errors
@@ -99,25 +82,5 @@ public class GlobalExceptionHandler {
 
   private String messageFor(ResponseStatusException exception) {
     return exception.getReason() == null ? "Request failed" : exception.getReason();
-  }
-
-  private String fieldPath(JsonMappingException exception) {
-    return exception.getPath()
-      .stream()
-      .map(reference -> reference.getFieldName() != null
-        ? reference.getFieldName()
-        : "[" + reference.getIndex() + "]")
-      .collect(Collectors.joining("."));
-  }
-
-  private <T extends Throwable> T findCause(Throwable throwable, Class<T> type) {
-    while (throwable != null) {
-      if (type.isInstance(throwable)) {
-        return type.cast(throwable);
-      }
-      throwable = throwable.getCause();
-    }
-
-    return null;
   }
 }
