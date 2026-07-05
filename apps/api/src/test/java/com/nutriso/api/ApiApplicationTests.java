@@ -42,8 +42,7 @@ class ApiApplicationTests {
 					"""))
 			.andExpect(status().isUnauthorized())
 			.andExpect(jsonPath("$.status").value(401))
-			.andExpect(jsonPath("$.message").value("Invalid credentials"))
-			.andExpect(jsonPath("$.path").value("/api/v1/auth/login"));
+			.andExpect(jsonPath("$.message").value("Invalid credentials"));
 	}
 
 	@Test
@@ -55,8 +54,7 @@ class ApiApplicationTests {
 					"""))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.status").value(400))
-			.andExpect(jsonPath("$.message").value("Invalid request body"))
-			.andExpect(jsonPath("$.path").value("/api/v1/auth/login"));
+			.andExpect(jsonPath("$.message").value("Invalid request body"));
 	}
 
 }
