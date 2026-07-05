@@ -10,7 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.nutriso.api.auth.dto.LoginRequest;
 import com.nutriso.api.auth.dto.LoginResponse;
 import com.nutriso.api.auth.dto.RegisterRequest;
-import com.nutriso.api.auth.type.AuthResponse;
+import com.nutriso.api.auth.type.AuthData;
 import com.nutriso.api.auth.type.GeneratedAccessToken;
 import com.nutriso.api.auth.type.GeneratedRefreshToken;
 import com.nutriso.api.common.exception.ApiErrorCodes;
@@ -30,7 +30,7 @@ public class AuthService {
   private final RefreshTokenService refreshTokenService;
   private final PasswordEncoder passwordEncoder;
 
-  public AuthResponse login(LoginRequest request, String userAgent) {
+  public AuthData login(LoginRequest request, String userAgent) {
     User user = userService.findByEmail(request.email())
       .orElseThrow(() -> invalidCredentials());
 
@@ -41,7 +41,7 @@ public class AuthService {
     return createAuthResponse(user, userAgent);
   }
 
-  public AuthResponse register(RegisterRequest request, String userAgent){
+  public AuthData register(RegisterRequest request, String userAgent){
     if(!request.password().equals(request.confirmPassword())) 
       throw new FieldValidationException(HttpStatus.BAD_REQUEST, ApiErrorCodes.VALIDATION_FAILED ,Map.of("confirmPassword", ApiErrorCodes.PASSWORD_DO_NOT_MATCH));
 
@@ -66,13 +66,13 @@ public class AuthService {
       refreshTokenService.logout(refreshToken);
     }
 
-  private AuthResponse createAuthResponse(User user, String userAgent) {
+  private AuthData createAuthResponse(User user, String userAgent) {
     GeneratedAccessToken accessToken = jwtService.generateAccessToken(user);
     GeneratedRefreshToken refreshToken = refreshTokenService.generateRefreshTokenAndSave(user, userAgent);
 
     LoginResponse loginResponse = new LoginResponse(user.getId(), user.getEmail(), user.getRole());
 
-    return new AuthResponse(accessToken.token(), refreshToken.rawToken(), accessToken.expiresAt(), refreshToken.expiresAt(), loginResponse);
+    return new AuthData(accessToken.token(), refreshToken.rawToken(), accessToken.expiresAt(), refreshToken.expiresAt(), loginResponse);
   }
 
   private ResponseStatusException invalidCredentials() {
