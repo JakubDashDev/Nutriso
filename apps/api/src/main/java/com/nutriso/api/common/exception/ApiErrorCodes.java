@@ -25,4 +25,5 @@ public class ApiErrorCodes {
   public static final String INVALID_REQUEST_BODY = "INVALID_REQUEST_BODY";
 
   public static final String INVALID_MACROS_TOTAL = "INVALID_MACROS_TOTAL";
+  public static final String INVALID_GOAL_TYPE = "INVALID_GOAL_TYPE";
 }
